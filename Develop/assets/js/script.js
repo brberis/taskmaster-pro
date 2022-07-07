@@ -76,7 +76,7 @@ $("#task-form-modal").on("shown.bs.modal", function() {
 });
 
 // save button in modal was clicked
-$("#task-form-modal .btn-primary").click(function() {
+$("#task-form-modal .btn-save").click(function() {
   // get form values
   var taskText = $("#modalTaskDescription").val();
   var taskDate = $("#modalDueDate").val();
@@ -186,6 +186,11 @@ $(".list-group").on("change", "input[type='text']", function() {
     .addClass("badge badge-primary badge-pill")
     .text(date);
   $(this).replaceWith(taskSpan);
+
+  // Pass task's <li> element into auditTask() to check new due date
+  auditTask($(taskSpan).closest(".list-group-item"));
+
+
 });
 
 // remove all tasks
@@ -205,18 +210,21 @@ $(".card .list-group").sortable({
   scroll: false,
   tolerance: "pointer",
   helper: "clone",
-  // activate: function(event) {
-  //   console.log("activate", this);
-  // },
-  // deactivate: function(event) {
-  //   console.log("deactivate", this);
-  // },
-  // over: function(event) {
-  //   console.log("over", event.target);
-  // },
-  // out: function(event) {
-  //   console.log("out", event.target);
-  // },
+  activate: function(event) {
+    $(this).addClass("dropover");
+    $(".bottom-trash").addClass("bottom-trash-drag");
+  },
+  deactivate: function(event) {
+    $(this).removeClass("dropover");
+    $(".bottom-trash").removeClass("bottom-trash-drag");
+
+  },
+  over: function(event) {
+    $(event.target).addClass("dropover-active");
+  },
+  out: function(event) {
+    $(event.target).removeClass("dropover-active");
+  },
   update: function(event) {
     // loop over current set of children in sortable list
 // array to store the task data in
@@ -256,14 +264,13 @@ $("#trash").droppable({
   accept: ".card .list-group-item",
   tolerance: "touch",
   drop: function(event, ui) {
-    console.log("drop");
     ui.draggable.remove();
   },
   over: function(event, ui) {
-    console.log("over");
+    $(".bottom-trash").addClass("bottom-trash-active");
   },
   out: function(event, ui) {
-    console.log("out");
+    $(".bottom-trash").removeClass("bottom-trash-active");
   }
 });
 
@@ -271,3 +278,8 @@ $("#modalDueDate").datepicker({
   minDate: 1
 });
 
+setInterval(function () {
+  $(".card .list-group-item").each(function(index, el) {
+    auditTask(el);
+  });
+}, (1000 * 60) * 30);
